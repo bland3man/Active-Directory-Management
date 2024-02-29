@@ -1,12 +1,3 @@
-<# Created by Bland D. Wallace III
-   bdw3@live.com
-   This should create bulk users in AD.  Each sheet in the excel file represents its own department and is mapped to an OU.  This will create users with the template user
-   of their respective OU to be created in according to the excel sheet their data is found.  Of course, go ahead and change it to your liking, but I have the code in this
-   script that created those users for my purpose at work.    you will have to adjust the formatting of the samAccountName and such according to your specifications.  I 
-   have kept the formatting as reading FirstName.LastName or FirstNameMiddleInitial.LastName.  If your AD lists users lastName firstName you have pretty much nothing to change
-   other than what is specific to your standards.  This is pretty standard for most AD's I have worked on though.
-#>
-
 # Import the ImportExcel module
 Import-Module ImportExcel
 
@@ -14,13 +5,13 @@ Import-Module ImportExcel
 Import-Module ActiveDirectory
 
 # Set the path to the Excel file (.xlsx)
-$excelFilePath = "C:\path\to\userDataExcelFile"
+$excelFilePath = "C:\Users\Bland.Wallace\Documents\Create-ADUsers.xlsm"
 
 # Specify the root OU to search within
-$RootOU = "OU=<parentOU>,DC=<DC>,DC=<DC>,DC=<DC>"
+$RootOU = "OU=DOC,DC=state,DC=de,DC=us"
 
 # Specify the domain to search for user's domain wide
-$Domain = "DC=<DC>,DC=<DC>,DC=<DC>"
+$Domain = "DC=state,DC=de,DC=us"
 
 # Specify an array of worksheet names
 $worksheetNames = @("Administration", 
@@ -250,10 +241,10 @@ function Create-NewUser {
             $samAccountName = "$FirstName$MiddleInitial.$LastName"
         } else {
             Write-Host "Skipping user creation for $userCN, proceeding to process the next user in the excel file"
-            Add-Content -Path "\\path\to\skippedUser.txt" -Value $userCN
+            Add-Content -Path "C:\Users\Bland.Wallace\Documents\SkippedUsers.txt" -Value $userCN
             return
         }
-        $userPrincipalName = "$samAccountName@<domain.gov or something.com>"
+        $userPrincipalName = "$samAccountName@delaware.gov"
     }
 
     # Determine the value for 'description' and 'title' properties
@@ -266,7 +257,7 @@ function Create-NewUser {
     }
 
     # Create a new user
-    $newUser = New-ADUser -Name $userCN -SamAccountName $samAccountName -GivenName $FirstName -Surname $LastName -Initials $MiddleInitial -Path $OU -Enabled $true -UserPrincipalName $userPrincipalName -DisplayName "$LastName, $FirstName $MiddleInitial. (whatever you need to be displayed here after the user's name)" -Title $title -Description $description -AccountPassword (ConvertTo-SecureString "<temporaryPassword>" -AsPlainText -Force) -ChangePasswordAtLogon $true
+    $newUser = New-ADUser -Name $userCN -SamAccountName $samAccountName -GivenName $FirstName -Surname $LastName -Initials $MiddleInitial -Path $OU -Enabled $true -UserPrincipalName $userPrincipalName -DisplayName "$LastName, $FirstName $MiddleInitial. (DOC)" -Title $title -Description $description -AccountPassword (ConvertTo-SecureString "Welcome@doc1" -AsPlainText -Force) -ChangePasswordAtLogon $true
 
     Write-Host "User created successfully."
     Write-Host "Distinguished Name (DN): CN=$userCN,$OU"
@@ -402,7 +393,7 @@ function Create-UserHomeDrive {
         [string]$HomeDriveStatus
     )
 
-    $homeDriveRoot = "\\path\to\userHomeDrives"
+    $homeDriveRoot = "\\docfpadmin01\hdrives$\Users"
 
     if ($User) {
         $firstName = $User.GivenName
